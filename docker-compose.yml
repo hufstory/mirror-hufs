@@ -1,0 +1,40 @@
+version: "3.8"
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /etc/nginx/certs
+      - /etc/nginx/vhost.d
+      - /usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+  nginx-proxy-letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    volumes_from:
+      - nginx-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - DEFAULT_EMAIL=0226daniel@gmail.com
+  example1:
+    image: strm/helloworld-http
+    environment:
+      - VIRTUAL_HOST=example1.hufs.kimjisub.me
+      - LETSENCRYPT_HOST=example1.hufs.kimjisub.me
+  example2:
+    image: strm/helloworld-http
+    environment:
+      - VIRTUAL_HOST=example2.hufs.kimjisub.me
+      - LETSENCRYPT_HOST=example2.hufs.kimjisub.me
+  # metricbeat:
+  #   image: docker.elastic.co/beats/metricbeat:7.6.2
+  #   user: root
+  #   environment:
+  #    - ELASTICSEARCH_HOSTS=http://host.docker.internal:9200
+  #    - KIBANA_HOST=http://host.docker.internal:5601
+  #  network_mode: "host"
+  #  ports:
+  #    - 9200:9200
+  #    - 5601:5601
