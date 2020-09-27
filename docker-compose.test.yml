@@ -1,0 +1,26 @@
+version: "3.8"
+services:
+  example1:
+    ports:
+      - 8081:80
+  example2:
+    ports:
+      - 8082:80
+
+  elasticsearch:
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+      ELASTIC_PASSWORD: password
+      discovery.type: single-node
+    volumes:
+      - ./elasticsearch/test/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - elasticsearch:/usr/share/elasticsearch/data
+
+  logstash:
+    volumes:
+      - ./logstash/test/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./logstash/test/pipeline:/usr/share/logstash/pipeline:ro
+
+  kibana:
+    volumes:
+      - ./kibana/test/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro

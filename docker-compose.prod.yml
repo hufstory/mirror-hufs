@@ -1,0 +1,53 @@
+version: "3.8"
+services:
+  example1:
+    environment:
+      - VIRTUAL_HOST=example2.hufs.kimjisub.me
+      - LETSENCRYPT_HOST=example2.hufs.kimjisub.me
+
+  example2:
+    environment:
+      - VIRTUAL_HOST=example1.hufs.kimjisub.me
+      - LETSENCRYPT_HOST=example1.hufs.kimjisub.me
+
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /etc/nginx/certs
+      - /etc/nginx/vhost.d
+      - /usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+  nginx-proxy-letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: letsencrypt-nginx-proxy-companion
+    volumes:
+      - /etc/nginx/certs
+      - /etc/nginx/vhost.d
+      - /usr/share/nginx/html
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - DEFAULT_EMAIL=$DEFAULT_EMAIL
+      - NGINX_PROXY_CONTAINER=nginx-proxy
+
+  elasticsearch:
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+      ELASTIC_PASSWORD: $ELK_PASSWORD
+      discovery.type: single-node
+    volumes:
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - elasticsearch:/usr/share/elasticsearch/data
+
+  logstash:
+    volumes:
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+
+  kibana:
+    volumes:
+      - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro

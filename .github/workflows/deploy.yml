@@ -47,6 +47,8 @@ jobs:
         with:
           envkey_DEFAULT_EMAIL: ${{ secrets.DEFAULT_EMAIL }}
           envkey_ELK_VERSION: ${{ secrets.ELK_VERSION }}
+          envkey_ELK_USERNAME: ${{ secrets.ELK_USERNAME }}
+          envkey_ELK_PASSWORD: ${{ secrets.ELK_PASSWORD }}
           file_name: .env
 
       - name: Upload Repository
