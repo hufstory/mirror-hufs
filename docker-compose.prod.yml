@@ -1,14 +1,9 @@
 version: "3.8"
 services:
-  example1:
-    environment:
-      - VIRTUAL_HOST=example2.hufs.kimjisub.me
-      - LETSENCRYPT_HOST=example2.hufs.kimjisub.me
-
-  example2:
-    environment:
-      - VIRTUAL_HOST=example1.hufs.kimjisub.me
-      - LETSENCRYPT_HOST=example1.hufs.kimjisub.me
+  #app_proxy_example:
+  #  environment:
+  #    - VIRTUAL_HOST=example1.hufs.kimjisub.me
+  #    - LETSENCRYPT_HOST=example1.hufs.kimjisub.me
 
   nginx-proxy:
     image: jwilder/nginx-proxy
@@ -34,20 +29,48 @@ services:
       - DEFAULT_EMAIL=$DEFAULT_EMAIL
       - NGINX_PROXY_CONTAINER=nginx-proxy
 
+  filebeat:
+    expose:
+      - "9000"
+    volumes:
+      - ./config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
   elasticsearch:
     environment:
       ES_JAVA_OPTS: "-Xmx256m -Xms256m"
       ELASTIC_PASSWORD: $ELK_PASSWORD
       discovery.type: single-node
+      xpack.security.enabled: "true"
     volumes:
-      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - ./config/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
       - elasticsearch:/usr/share/elasticsearch/data
 
   logstash:
     volumes:
-      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
-      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./config/logstash/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./config/logstash/pipeline/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
 
   kibana:
     volumes:
-      - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+      - ./config/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+
+  zookeeper:
+    image: wurstmeister/zookeeper:3.4.6
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: wurstmeister/kafka:2.12-2.5.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: 127.0.0.1
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_CREATE_TOPICS: "mirror-log:1:1"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

@@ -1,0 +1,20 @@
+filebeat.autodiscover:
+# Autodiscover docker containers and parse logs
+  providers:
+    - type: docker
+      templates:
+        - config:
+          - paths:
+              - /var/lib/docker/containers/*/*.log
+            exclude_lines: ["^\\s+[\\-`('.|_]"]  # drop asciiart lines
+
+output.kafka:
+  hosts: "kafka:9092"
+  topic: 'mirror-log'
+  partition.round_robin:
+    reachable_only: false
+  required_acks: 1
+  compression: gzip
+
+setup.kibana:
+  host: "kibana:5601"

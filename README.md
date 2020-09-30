@@ -9,7 +9,10 @@
 
 ### Host Port
 
+- 2181: Zookeeper
 - 5000: Logstash TCP input
+- 9000: FileBeat
+- 9092: Kafka
 - 9200: Elasticsearch HTTP
 - 9300: Elasticsearch TCP transport
 - 5601: Kibana
@@ -20,6 +23,8 @@
 - SSH_KEY
 - SSH_USERNAME
 - DEFAULT_EMAIL
+- ELK_USERNAME
+- ELK_PASSWORD
 
 ### Enviorment
 
@@ -30,4 +35,4 @@
 The stack is pre-configured with the following **privileged** bootstrap user:
 
 - user: _elastic_
-- password: _changeme_
+- password: _password_
